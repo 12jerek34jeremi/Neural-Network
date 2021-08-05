@@ -1,24 +1,23 @@
 import numpy as np
 from PIL import Image
 
-
 class Loader:
     def __init__(self, mode):
         if mode == "training":
             self.image_file = open('MNIST/train-images.idx3-ubyte', 'rb')
-            self.label_file = open('MNIST/train-labels.idx1-ubyte', 'rb')
-            self.label_data = self.label_file.read()
+            label_file = open('MNIST/train-labels.idx1-ubyte', 'rb')
         elif mode == "test":
             self.image_file = open('MNIST/t10k-images.idx3-ubyte', 'rb')
-            self.label_file = open('MNIST/t10k-labels.idx1-ubyte', 'rb')
-            self.label_data = self.label_file.read()
+            label_file = open('MNIST/t10k-labels.idx1-ubyte', 'rb')
 
-    def load_tupple(self, index):
-        return self.load_x(index), self.load_y(index)
+        self.label_data = label_file.read()
+        label_file.close()
+        self.image_file.seek(16)
 
     def load_x(self, index):
-        x = (np.fromfile(self.image_file, dtype=np.ubyte, count=784, offset=16 + index * 784) / 255)
-        x.resize((784, 1), refcheck=False)
+        x = (np.fromfile(self.image_file, dtype=np.ubyte, count=784, offset=index * 784) / 255)
+        x.resize((784, 1))
+        self.image_file.seek(16)
         return x
 
     def load_y(self, index):
@@ -26,10 +25,11 @@ class Loader:
         y[self.label_data[8 + index], 0] = 1.0
         return y
 
+    def load_tupple(self, index):
+        return self.load_x(index), self.load_y(index)
 
     def __del__(self):
         self.image_file.close()
-        self.label_file.close()
 
     def load_label(self, index):
         return self.label_data[8 + index]
@@ -46,10 +46,8 @@ class Loader:
                 pixel_map[x_index, y_index] = (color, color, color)
                 i += 1
         image.show()
-        print("image_matrix: ", x)
         print("desired_output_matrix: ", y)
         print("desired_label: ", label)
-        a = input()
         image.close()
 
     def __enter__(self):
@@ -57,4 +55,3 @@ class Loader:
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.image_file.close()
-        self.label_file.close()
