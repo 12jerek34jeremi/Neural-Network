@@ -1,5 +1,36 @@
 import numpy as np
 from PIL import Image
+import pickle
+
+def load_training_tuples():
+    """This method is returning a 60'000 elements list. Each element of this list is tuple of x and y, where x
+    is an input matrix representing an image, and y is desired output matrix (a matrix of shape (10, 1) ).
+    IT'S NOT THE SAME as load_test_tuples. In this (load_training_tuples) method second element of a tuple is numpy
+     array (matrix), while in load_test_tuples second element of a tuple is label (just a int number) """
+    with open("MNIST/training_tuples.python_list", "rb") as file:
+        tuples = pickle.load(file)
+    return tuples
+
+def load_test_tuples():
+    """This method is returning a 10'000 elements list. Each element of this list is tuple of x and label, where x
+    is an input matrix representing an image, and label is digit (int) which is on this image.
+    IT'S NOT THE SAME as load_training_tuples. In this method (load_test_tuples) second element of a tuple is label
+    (just a int number), while in load_training_tuples second element of a tuple is numpy array (matrix)"""
+    with open("MNIST/test_tuples.python_list", "rb") as file:
+        tuples = pickle.load(file)
+    return tuples
+
+def show_image(self, x):
+    image = Image.new("RGB", (28, 28))
+    pixel_map = image.load()
+    i = 0
+    for y_index in range(28):
+        for x_index in range(28):
+            color = int(255 * x[i, 0])
+            pixel_map[x_index, y_index] = (color, color, color)
+            i += 1
+    image.show()
+    image.close()
 
 class Loader:
     def __init__(self, mode):

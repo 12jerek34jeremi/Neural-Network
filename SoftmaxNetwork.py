@@ -5,7 +5,7 @@ import copy
 
 
 
-class Network:
+class SoftmaxNetwork:
     def __init__(self, shape, name = None):
         """This constructor create new Network. Argument 'shape' is tuple of number of neurons in consecutive layers.
         For example if shape is (100, 30, 30, 5), net will have 100 neurons in input layer (layer 0), 30 in first layer
@@ -51,9 +51,14 @@ class Network:
     def run(self, x):
         """This method is running the net using the given input (x) and returning an output matrix
         (an matrix of shape (n, 1), where n is natural number)"""
-        result = Network.sigmoid((self.weights[1] @ x) - self.biases[1])
+        result = (self.weights[1] @ x) - self.biases[1]
         for weights, biases in zip(self.weights[2:], self.biases[2:]):
-            result = Network.sigmoid((weights @ result) - biases)
+            result = SoftmaxNetwork.sigmoid(result)
+            result = (weights @ result) - biases
+
+        result = np.exp(result, out = result)
+        sum = np.sum(result)
+        result /= sum
         return result
 
     @staticmethod
@@ -76,7 +81,7 @@ class Network:
                 accurate += 1
         return accurate / len(test_data)
 
-    def mini_batch(self, tuples, eta, mini_batch_size, cost_function, dropout = False):
+    def mini_batch(self, tuples, eta, mini_batch_size, dropout = False):
         """Argument cost function tell which cost function to use.
             1 for qudratic cost function
             2 for entropy cost--function
@@ -120,7 +125,7 @@ class Network:
             self.weights[l] -= overall_weights_derivatives[l] * (eta / mini_batch_size)
             self.biases[l] -= overall_biases_derivatives[l] * (eta / mini_batch_size)
 
-    def backpropagate(self, x, y, cost_function):
+    def backpropagate(self, x, y):
         """This function return all weights and biases derivatives given an input and desired output
             It is using four backpropagation equations.
             Argument cost function tell which cost function to use.
@@ -135,19 +140,14 @@ class Network:
 
         for i in range(1, self.num_of_layers):
             z.append((self.weights[i] @ a[i - 1]) - self.biases[i])
-            a.append(Network.sigmoid(z[i]))
+            a.append(SoftmaxNetwork.sigmoid(z[i]))
         # in above loop I count all activations and z's
 
-        if(cost_function == 1):
-            errors[self.num_of_layers - 1] = \
-                (a[self.num_of_layers - 1] - y) * Network.sigmoid_derivative(a[self.num_of_layers - 1])
-            # in the line above I am counting an error for the last layer using first backpropagation equation
-        elif(cost_function == 2):
-            errors[self.num_of_layers - 1] = a[self.num_of_layers-1] - y
-            # in the line above I am counting an error for the last layer using first backpropagation equation
+        errors[self.num_of_layers - 1] = a[self.num_of_layers-1] - y
+        # in the line above I am counting an error for the last layer using first backpropagation equation
 
         for l in range(self.num_of_layers - 2, 0, -1):
-            errors[l] = (self.weights[l+1].T @ errors[l+1]) * Network.sigmoid_derivative(a[l])
+            errors[l] = (self.weights[l+1].T @ errors[l+1]) * SoftmaxNetwork.sigmoid_derivative(a[l])
         # in loop above I am counting errors for all layers in the network using second backpropagation equation (BP2)
 
         for l in range(self.num_of_layers - 1, 0, -1):
