@@ -76,7 +76,8 @@ class Network:
                 accurate += 1
         return accurate / len(test_data)
 
-    def mini_batch(self, tuples, eta, mini_batch_size, cost_function, dropout = False):
+    def mini_batch(self, tuples, eta, mini_batch_size, cost_function, dropout = False,
+                   L1_regularization_prm = None, L2_regularization_prm = None):
         """Argument cost function tell which cost function to use.
             1 for qudratic cost function
             2 for entropy cost--function
@@ -112,6 +113,15 @@ class Network:
             for l in range(1, self.num_of_layers):
                 overall_weights_derivatives[l] += weights_derivatives[l]
                 overall_biases_derivatives[l] += biases_derivatives[l]
+
+        if L1_regularization_prm:
+            for l in range(1, self.num_of_layers):
+                    overall_weights_derivatives += L1_regularization_prm * np.sign(self.weights[l])
+                    # L1_regularization_prm was divided bus n (length of training examples) in 'train' method
+        if L2_regularization_prm:
+            for l in range(1, self.num_of_layers):
+                    overall_weights_derivatives[l] += L2_regularization_prm * self.weights[l]
+                    # L2_regularization_prm was divided bus n (length of training examples) in 'train' method
 
         if dropout:
             self.weights, weights = weights, self.weights
@@ -159,19 +169,25 @@ class Network:
         # BP3 tells that specific error is equal to specific biases derivatives
         # (the ratio between them is equal to zero)
 
-    def train(self, number_of_epochs, mini_batch_size, eta, cost_function, train_data, test_data = None, dropout=False):
+    def train(self, number_of_epochs, mini_batch_size, eta, cost_function, train_data, test_data = None, dropout=False,
+              L1_regularization_prm = None, L2_regularization_prm = None):
         """Argument cost function tell which cost function to use.
             1 for quadratic cost function
             2 for entropy cost--function
 
             This function shuffle the train_data ( it alternate the list)
         """
-        print("Starting training")
         n = len(train_data)
+        if L1_regularization_prm:
+            L1_regularization_prm /= n
+        if L2_regularization_prm:
+            L2_regularization_prm /= n
+
+        print("Starting training")
         for epoch in range(number_of_epochs):
             random.shuffle(train_data)
             for i in range(0, n, mini_batch_size):
-                self.mini_batch(train_data[i : i+mini_batch_size], eta, mini_batch_size, cost_function, dropout)
+                self.mini_batch(train_data[i : i+mini_batch_size], eta, mini_batch_size, cost_function, dropout, L1_regularization_prm, L2_regularization_prm)
             print("Finished epoch ", epoch)
             if test_data:
                 print("Efficiency: ", self.test_net(test_data))

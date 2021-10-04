@@ -3,7 +3,7 @@ import random
 import pickle
 import copy
 
-
+# NOT FINISHED, class 'Neuron" is finished, this is not 
 
 class SoftmaxNetwork:
     def __init__(self, shape, name = None):
@@ -81,7 +81,7 @@ class SoftmaxNetwork:
                 accurate += 1
         return accurate / len(test_data)
 
-    def mini_batch(self, tuples, eta, mini_batch_size, dropout = False):
+    def mini_batch(self, tuples, eta, mini_batch_size, cost_function, dropout = False, L1_regularization_prm = None, L2_regularization_prm = None):
         """Argument cost function tell which cost function to use.
             1 for qudratic cost function
             2 for entropy cost--function
@@ -159,7 +159,8 @@ class SoftmaxNetwork:
         # BP3 tells that specific error is equal to specific biases derivatives
         # (the ratio between them is equal to zero)
 
-    def train(self, number_of_epochs, mini_batch_size, eta, cost_function, train_data, test_data = None, dropout=False):
+    def train(self, number_of_epochs, mini_batch_size, eta, cost_function, train_data, test_data = None, dropout=False,
+              L1_regularization_prm = None, L2_regularization_prm = None):
         """Argument cost function tell which cost function to use.
             1 for quadratic cost function
             2 for entropy cost--function
@@ -171,7 +172,7 @@ class SoftmaxNetwork:
         for epoch in range(number_of_epochs):
             random.shuffle(train_data)
             for i in range(0, n, mini_batch_size):
-                self.mini_batch(train_data[i : i+mini_batch_size], eta, mini_batch_size, cost_function, dropout)
+                self.mini_batch(train_data[i : i+mini_batch_size], eta, mini_batch_size, cost_function, dropout, L1_regularization_prm, L2_regularization_prm)
             print("Finished epoch ", epoch)
             if test_data:
                 print("Efficiency: ", self.test_net(test_data))
