@@ -3,10 +3,11 @@ import random
 import pickle
 import copy
 
-
+class Network:
+    pass
 
 class Network:
-    def __init__(self, shape, name = None):
+    def __init__(self, shape: tuple[int], name = None):
         """This constructor create new Network. Argument 'shape' is tuple of number of neurons in consecutive layers.
         For example if shape is (100, 30, 30, 5), net will have 100 neurons in input layer (layer 0), 30 in first layer
         an so on. This constructor create list of matrices representing weights and biases and initialize with normal
@@ -29,7 +30,7 @@ class Network:
         else:
             self.name = "neural_net"
 
-    def save(self, add_shape = True, name = None, file_path = "saves/"):
+    def save(self, add_shape: bool = True, name: str = None, file_path: str = "saves/"):
         if name:
             file_path += name
         else:
@@ -42,13 +43,13 @@ class Network:
             pickle.dump(self, file)
 
     @staticmethod
-    def load(file_name, directory = "saves/"):
+    def load(file_name: str, directory: str = "saves/") -> Network:
         file_name = directory + file_name
         with open(file_name, "rb") as file:
             network = pickle.load(file)
         return network
 
-    def run(self, x):
+    def run(self, x: np.ndarray):
         """This method is running the net using the given input (x) and returning an output matrix
         (an matrix of shape (n, 1), where n is natural number)"""
         result = Network.sigmoid((self.weights[1] @ x) - self.biases[1])
@@ -57,16 +58,16 @@ class Network:
         return result
 
     @staticmethod
-    def sigmoid(z):
+    def sigmoid(z : np.ndarray or int or float):
          return 1.0 / (1.0 + np.exp(-z))
 
     @staticmethod
-    def sigmoid_derivative(a):
+    def sigmoid_derivative(a : np.ndarray or int or float):
         "a is some layer of activations"
         return a * (1.0 - a)
 
 
-    def test_net(self, test_data):
+    def test_net(self, test_data: np.ndarray):
         """This method run Network with all examples of test_data (arg) and returns fraction which tells how many
             images where classified correctly. test_data is list of tupples. Each tupple is numpy matrix representing
             an image and an label connected to that image."""
@@ -74,10 +75,12 @@ class Network:
         for x, label in test_data:
             if np.argmax(self.run(x)) == label:
                 accurate += 1
+
         return accurate / len(test_data)
 
-    def mini_batch(self, tuples, eta, mini_batch_size, cost_function, dropout = False,
-                   L1_regularization_prm = None, L2_regularization_prm = None):
+    def mini_batch(self, tuples: list[tuple[np.ndarray, int]], eta: float, mini_batch_size: int,
+                   cost_function: int, dropout: bool = False, L1_regularization_prm: float = None,
+                   L2_regularization_prm: float = None):
         """Argument cost function tell which cost function to use.
             1 for qudratic cost function
             2 for entropy cost--function
@@ -108,8 +111,8 @@ class Network:
         for l in range(1, self.num_of_layers):
             overall_biases_derivatives.append(np.zeros((self.shape[l], 1)))
 
-        for x, y in tuples:
-            weights_derivatives, biases_derivatives = self.backpropagate(x, y, cost_function)
+        for x, label in tuples:
+            weights_derivatives, biases_derivatives = self.backpropagate(x, label, cost_function)
             for l in range(1, self.num_of_layers):
                 overall_weights_derivatives[l] += weights_derivatives[l]
                 overall_biases_derivatives[l] += biases_derivatives[l]
@@ -130,7 +133,7 @@ class Network:
             self.weights[l] -= overall_weights_derivatives[l] * (eta / mini_batch_size)
             self.biases[l] -= overall_biases_derivatives[l] * (eta / mini_batch_size)
 
-    def backpropagate(self, x, y, cost_function):
+    def backpropagate(self, x: np.ndarray, label: int, cost_function: int):
         """This function return all weights and biases derivatives given an input and desired output
             It is using four backpropagation equations.
             Argument cost function tell which cost function to use.
@@ -141,7 +144,8 @@ class Network:
         z = [None]  # An array for all z's (activation before sigma function)
         errors = [None] * self.num_of_layers # this are so called errors
         weights_derivatives = [None] * self.num_of_layers # an array of all weights derivatives, created in a loop beneath
-
+        y = np.zeros((10,1))
+        y[label,0] = 1.0
 
         for i in range(1, self.num_of_layers):
             z.append((self.weights[i] @ a[i - 1]) - self.biases[i])
@@ -169,8 +173,10 @@ class Network:
         # BP3 tells that specific error is equal to specific biases derivatives
         # (the ratio between them is equal to zero)
 
-    def train(self, number_of_epochs, mini_batch_size, eta, cost_function, train_data, test_data = None, dropout=False,
-              L1_regularization_prm = None, L2_regularization_prm = None):
+    def train(self, number_of_epochs: int, mini_batch_size: int, eta: float, cost_function: int,
+              train_data: list[tuple[np.ndarray,int]] or None, test_data: list[tuple[np.ndarray,int]] or None,
+              dropout: bool = False, L1_regularization_prm: float or None = None,
+    L2_regularization_prm: float or None = None):
         """Argument cost function tell which cost function to use.
             1 for quadratic cost function
             2 for entropy cost--function
