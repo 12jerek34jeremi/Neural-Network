@@ -1,8 +1,8 @@
 # Neural Network
 
-Projekt Neural Network to implementacja sztucznej sieci neuronowej.
-
-W tym repozytorium ważne są tak naprawdę dwa pliki:
+Neural Network project is an implementation of atificial Neural Network :D :D.
+<br/><br/>
+In this repository there are two important files:
 1) Network.py:<br/>
 In that file there is a NeuralNetwork class, which is an implementation of a neural network that allows you to create a neural network with dense layers (Fully Connected Layer). The number of layers in the network and the number of neurons in each layer is determined by the argument of the constructor. The class also implements backpropagation, allows you to train the network and apply such regularizations as DropDown, L1/L2 regularizations. The class also allows you to save a network to a file and load network from a file.
 2) MNIST_loader.py <br/>
